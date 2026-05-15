@@ -9,15 +9,22 @@ from exportadores.excel import (
 
 def main():
 
-    print("Obteniendo cámaras...\n")
+    print(
+        "Obteniendo cámaras...\n"
+    )
 
     camaras = obtener_camaras()
 
-    print(f"Total cámaras: {len(camaras)}")
+    print(
+        f"Total cámaras: "
+        f"{len(camaras)}"
+    )
 
     exportar_excel(camaras)
 
-    print("\nProceso finalizado")
+    print(
+        "\nProceso finalizado"
+    )
 
 
 if __name__ == "__main__":

@@ -18,7 +18,7 @@ def main():
 
         ip = camara["ip"]
 
-        nombre_nvr = camara["nombre"]
+        nombre_nvr = camara["nombre_nvr"]
 
         nombre_actual = obtener_nombre_actual(
             ip

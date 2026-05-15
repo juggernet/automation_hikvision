@@ -1,7 +1,14 @@
 from openpyxl import Workbook
 
+import os
+
 
 def exportar_excel(camaras):
+
+    os.makedirs(
+        "reportes",
+        exist_ok=True
+    )
 
     wb = Workbook()
 
@@ -10,10 +17,18 @@ def exportar_excel(camaras):
     ws.title = "Camaras"
 
     encabezados = [
+
         "Canal",
-        "Nombre",
+
         "IP",
-        "Modelo"
+
+        "Nombre NVR",
+
+        "Nombre Camara",
+
+        "Modelo",
+
+        "Serie"
     ]
 
     ws.append(encabezados)
@@ -21,14 +36,28 @@ def exportar_excel(camaras):
     for camara in camaras:
 
         ws.append([
+
             camara["canal"],
-            camara["nombre"],
+
             camara["ip"],
-            camara["modelo"]
+
+            camara["nombre_nvr"],
+
+            camara["nombre_camara"],
+
+            camara["modelo"],
+
+            camara["serie"]
         ])
 
-    wb.save(
-        "reportes/inventario_camaras.xlsx"
+    ruta = (
+        "reportes/"
+        "inventario_camaras.xlsx"
     )
 
-    print("Excel generado correctamente")
+    wb.save(ruta)
+
+    print(
+        f"\nExcel generado:"
+        f"\n{ruta}"
+    )

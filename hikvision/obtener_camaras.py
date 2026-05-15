@@ -1,57 +1,143 @@
+import requests
+
 import xml.etree.ElementTree as ET
 
-from hikvision.conexion import peticion_get
+from requests.auth import HTTPDigestAuth
+
+
+import urllib3
+
+urllib3.disable_warnings(
+    urllib3.exceptions.InsecureRequestWarning
+)
+
+from config.config import (
+    IP_NVR,
+    USUARIO_NVR,
+    PASSWORD_NVR,
+    USUARIO_CAMARA,
+    PASSWORD_CAMARA
+)
+
+
+def obtener_nombre_camara(ip):
+
+    url = f"https://{ip}/ISAPI/System/deviceInfo"
+
+    try:
+
+        respuesta = requests.get(
+            url,
+            auth=HTTPDigestAuth(
+                USUARIO_CAMARA,
+                PASSWORD_CAMARA
+            ),
+            verify=False,
+            timeout=10
+        )
+
+        if respuesta.status_code != 200:
+
+            return "SIN_ACCESO"
+
+        root = ET.fromstring(
+            respuesta.text
+        )
+
+        namespace = {
+            "hik": "http://www.hikvision.com/ver20/XMLSchema"
+        }
+
+        nombre = root.find(
+            "hik:deviceName",
+            namespace
+        )
+
+        if nombre is None:
+
+            return "SIN_NOMBRE"
+
+        return nombre.text
+
+    except:
+
+        return "ERROR"
 
 
 def obtener_camaras():
 
-    endpoint = "/ISAPI/ContentMgmt/InputProxy/channels"
-
-    respuesta = peticion_get(endpoint)
-
-    root = ET.fromstring(respuesta.text)
-
-    ns = {
-        'hik': 'http://www.hikvision.com/ver20/XMLSchema'
-    }
-
-    canales = root.findall(
-        'hik:InputProxyChannel',
-        ns
+    url = (
+        f"http://{IP_NVR}"
+        "/ISAPI/ContentMgmt/InputProxy/channels"
     )
 
-    lista_camaras = []
+    respuesta = requests.get(
+        url,
+        auth=HTTPDigestAuth(
+            USUARIO_NVR,
+            PASSWORD_NVR
+        )
+    )
+
+    root = ET.fromstring(
+        respuesta.text
+    )
+
+    namespace = {
+        "hik": "http://www.hikvision.com/ver20/XMLSchema"
+    }
+
+    camaras = []
+
+    canales = root.findall(
+        "hik:InputProxyChannel",
+        namespace
+    )
 
     for canal in canales:
 
-        id_canal = canal.find('hik:id', ns)
+        id_canal = canal.find(
+            "hik:id",
+            namespace
+        ).text
 
-        nombre = canal.find('hik:name', ns)
+        nombre = canal.find(
+            "hik:name",
+            namespace
+        ).text
 
-        source = canal.find(
-            'hik:sourceInputPortDescriptor',
-            ns
+        ip = canal.find(
+            ".//hik:ipAddress",
+            namespace
+        ).text
+
+        modelo = canal.find(
+            ".//hik:model",
+            namespace
+        ).text
+
+        serie = canal.find(
+            ".//hik:serialNumber",
+            namespace
+        ).text
+
+        nombre_camara = obtener_nombre_camara(
+            ip
         )
 
-        ip = source.find('hik:ipAddress', ns)
+        camaras.append({
 
-        modelo = source.find('hik:model', ns)
+            "canal": f"D{id_canal}",
 
-        usuario = source.find('hik:userName', ns)
+            "nombre_nvr": nombre,
 
-        camara = {
+            "nombre_camara": nombre_camara,
 
-            "canal": f"D{id_canal.text}",
+            "ip": ip,
 
-            "nombre": nombre.text,
+            "modelo": modelo,
 
-            "ip": ip.text,
+            "serie": serie
+        })
 
-            "modelo": modelo.text,
-
-            "usuario": usuario.text
-        }
-
-        lista_camaras.append(camara)
-
-    return lista_camaras
+    return camaras
