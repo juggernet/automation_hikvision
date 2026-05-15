@@ -1,0 +1,18 @@
+# Virtual environment
+.venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# VSCode
+.vscode/
+
+# Excel reportes
+reportes/
+
+# Config sensible
+config/config.py
+
+# Environment variables
+.env
